@@ -2,10 +2,12 @@ import { useCallback } from 'react';
 import Head from 'next/head';
 import { useWeb3React } from '@web3-react/core';
 import { connector } from '../config/web3';
+import useSmartContract from '../hooks/useSmartContract';
 
 export default function Home() {
 
   const { active, activate, deactivate, account, error, chainId } = useWeb3React();
+  const gnft = useSmartContract();
 
   const connect = useCallback(() => {
     activate(connector);
@@ -16,6 +18,25 @@ export default function Home() {
     deactivate();
     localStorage.removeItem('previouslyConnected');
   });
+
+  const mint = () => {
+    if (gnft) {
+      gnft.methods
+        .mint()
+        .send({
+          from: account
+        })
+        .on('transactionHash', (txHash) => {
+          console.log('txHash', txHash);
+        })
+        .on('receipt', () => {
+          console.log('minted');
+        })
+        .on('error', (error) => {
+          console.log('error', error);
+        })
+    }
+  }
 
   return (
     <>
@@ -43,7 +64,7 @@ export default function Home() {
               ) : (
                 <button
                   className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                  onClick={disconnect}
+                  onClick={mint}
                 >
                   Mint
                 </button>
